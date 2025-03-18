@@ -16,6 +16,7 @@ public class YtDlpEngine
     public event EventHandler<string>? OnErrorMessage;
 
     private readonly string ytDlpExecutable;
+    private readonly string cookieProvidingBrowser;
     private readonly string logDirectory = Path.Combine(AppContext.BaseDirectory, "Logs");
     private readonly string logPath = Path.Combine(AppContext.BaseDirectory, "Logs", $"EngineLog_{DateTime.Today.ToString("yyyy_MM_dd")}.log");
 
@@ -24,7 +25,7 @@ public class YtDlpEngine
     /// </summary>
     /// <param name="ytDlpPath">Provide the yt-dlp.exe path</param>
     /// <exception cref="FileNotFoundException"></exception>
-    public YtDlpEngine(string ytDlpPath = "yt-dlp.exe")
+    public YtDlpEngine(string ytDlpPath = "yt-dlp.exe", string cookieProvidingBrowserName = "")
     {
         Initialize();
 
@@ -33,7 +34,7 @@ public class YtDlpEngine
 
         // Validate the path
         ytDlpExecutable = ValidateExecutablePath(ytDlpPath);
-
+        cookieProvidingBrowser = cookieProvidingBrowserName;
         LogToFile(LogType.Info, "Engine started successfully.");
     }
 
@@ -529,6 +530,10 @@ public class YtDlpEngine
     /// <exception cref="InvalidOperationException"></exception>
     private async Task RunCommandAsync(string arguments)
     {
+        if (!String.IsNullOrWhiteSpace(cookieProvidingBrowser))
+        {
+            arguments += $" --cookies-from-browser {cookieProvidingBrowser}";
+        }
         var startInfo = new ProcessStartInfo
         {
             FileName = ytDlpExecutable,
